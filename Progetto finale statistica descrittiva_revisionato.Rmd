@@ -1,0 +1,401 @@
+---
+title: "PROGETTO FINALE STATISTICA DESCRITTIVA"
+author: "Pier Paolo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+realestate_texas<-read.csv("/Users/pierpaologuolo/Desktop/La vita di Pier/data_science/Statistica descrittiva/Progetto finale/realestate_texas.csv",header = TRUE, sep=",", dec = ".")
+```
+
+### TASK 1 + 2: indica il tipo di variabili contenute nel dataset
+
+L'elaborazione avverrà su un database contenente dei dati riguardanti le vendite di immobili in Texas. Le variabili del database sono:
+
+**city**: città <font color="#33CC00">**(variabile qualitativa nominale)**</font>
+
+**year**: anno di riferimento <font color="#0099FF">**(variabile quantitativa continua)**</font>
+
+**month**: mese di riferimento <font color="#0099FF">**(variabile qualitativa codificata)**</font>
+
+**sales**: numero totale di vendite <font color="#0099FF">**(variabile quantitativa discreta)**</font>
+
+**volume**: valore totale delle vendite in milioni di \$ <font color="#CC00FF">**(variabile quantitativa continua)**</font>
+
+**median_price**: prezzo mediano di vendite in dollari <font color="#CC00FF">**(variabile quantitativa continua)**</font>
+
+**listings**: numero totale di annunci attivi <font color="##0099FF">**(variabile quantitativa discreta)**</font>
+
+**months_inventory**: quantità di tempo necessaria per vendere tutte le inserzioni correnti al ritmo attuale delle vendite <font color="#CC00FF">**(variabile quantitativa continua)**</font>
+
+### TASK 3 + 4: calcola indici di posizione, variabilità e forma per tutte le variabili per le quali ha senso farlo, per le altre crea una distribuzione di frequenza. Qual'è la variabile con variabilità più elevata? come ci sei arrivato? E quale quella più asimmetrica?
+
+Come prima cosa calcolo gli indici di posizione per le variabili del dataset:
+
+```{r}
+
+summary_realestate<-summary(realestate_texas[c("sales","volume","median_price","listings","months_inventory")])
+knitr::kable(summary_realestate,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**Summary**",align = "c")
+```
+
+Ora calcolo gli indici di variabilità ovvero la differenza interquartile, la varianza, la deviazione standard e infine effettuo un confronto tra le variabili per capire quale possiede la varianza maggiore.
+
+```{r results='asis'}
+# IQR
+attach(realestate_texas)
+IQR_sales<-IQR(sales)
+IQR_volume<-IQR(volume)
+IQR_median_price<-IQR(median_price)
+IQR_listings<-IQR(listings)
+IQR_months_inventory<-IQR(months_inventory)
+IQR_resume<-data.frame(IQR_sales,IQR_volume,IQR_median_price,IQR_listings,IQR_months_inventory)
+knitr::kable(IQR_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**IQR**",align = "c")
+```
+
+```{r}
+# varianza
+VAR_sales<-var(sales)
+VAR_volume<-var(volume)
+VAR_median_price<-var(median_price)
+VAR_listings<-var(listings)
+VAR_months_inventory<-var(months_inventory)
+VAR_resume<-data.frame(VAR_sales,VAR_volume,VAR_median_price,VAR_listings,VAR_months_inventory)
+knitr::kable(VAR_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**VAR**",align = "c")
+```
+
+```{r}
+# deviazione std
+SD_sales<-sd(sales)
+SD_volume<-sd(volume)
+SD_median_price<-sd(median_price)
+SD_listings<-sd(listings)
+SD_months_inventory<-sd(months_inventory)
+SD_resume<-data.frame(SD_sales,SD_volume,SD_median_price,SD_listings,SD_months_inventory)
+knitr::kable(SD_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**SD**",align = "c")
+```
+
+```{r}
+# coefficiente di variazione 
+cv<-function(x){
+  return(sd(x)/mean(x)*100)
+}
+
+CV_sales<-cv(sales)
+CV_volume<-cv(volume)
+CV_median_price<-cv(median_price)
+CV_listings<-cv(listings)
+CV_months_inventory<-cv(months_inventory)
+CV_resume<-data.frame(CV_sales,CV_volume,CV_median_price,CV_listings,CV_months_inventory)
+knitr::kable(CV_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**CV**",align = "c")
+```
+
+La variabile "volume" possiede l'indice di variazione più elevato e di conseguenza è la variabile che presenta la varianza più elevata. Al contrario "median_price" è la variabile che presenta la variabilità più piccola.
+
+Calcolo infine gli indici di forma ovvero asimetria e curtosi per queste variabili.
+
+```{r}
+library(moments)
+Skewness_sales<-skewness(sales)
+Skewness_volume<-skewness(volume)
+Skewness_median_price<-skewness(median_price)
+Skewness_listings<-skewness(listings)
+Skewness_months_inventory<-skewness(months_inventory)
+Skewness_resume<-data.frame(Skewness_sales,Skewness_volume,Skewness_median_price,Skewness_listings,Skewness_months_inventory)
+knitr::kable(Skewness_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**Skewness**",align = "c")
+
+```
+
+La variabile "volume" è la più asimmetrica (in assoluto). La variabile "median_price" invece è la più asimmetrica negativamente. Ecco come si distribuiscono.
+
+```{r,fig.width=10}
+library(ggplot2)
+library(gridExtra)
+library(grid)
+require(gridExtra)
+sales_density<-ggplot(realestate_texas,aes(x=sales))+
+  geom_density(col="green",linewidth=0.8,fill="lightgreen",alpha=0.4)
+median_price_density<-ggplot(realestate_texas,aes(x=median_price))+
+  geom_density(col="blue",linewidth=0.8,fill="lightblue",alpha=0.4)
+grid.arrange(sales_density, median_price_density, ncol=2)
+
+
+```
+
+```{r}
+Kurtosis_sales<-kurtosis(sales)-3
+Kurtosis_volume<-kurtosis(volume)
+Kurtosis_median_price<-kurtosis(median_price)-3
+Kurtosis_listings<-kurtosis(listings)-3
+Kurtosis_months_inventory<-kurtosis(months_inventory)-3
+Kurtosis_resume<-data.frame(Kurtosis_sales,Kurtosis_volume,Kurtosis_median_price,Kurtosis_listings,Kurtosis_months_inventory)
+knitr::kable(Kurtosis_resume,col.name=c("sales","volume","median price","listings","months inventory"),caption = "**Kurtosis**",align = "c")
+```
+
+Si nota che tutte le variabili, fatta ecezzione per "volume" (leptocurtica), presentano una distribuzione platicurtica.
+
+Come ultima cosa ottengo la ditribuzione di frequenza per la variabile city per la quale, essendo una variabile nominale, non avrebbe avuto senso calcolare gli indici mostrati sopra.
+
+```{r}
+N<-dim(realestate_texas)[1]
+freq_ass<-table(city)
+freq_rel<-table(city)/N
+distr_freq_city<-cbind(freq_ass,freq_rel)
+knitr::kable(distr_freq_city,col.name=c("freq ass","freq rel"),caption = "**Distribuzione di frequenza**",align = "c")
+
+```
+
+La distibuzione della variabile "city" è una distribuzione quadrimodale.
+
+### TASK 5: dividi una delle variabili quantitative in classi, decidi tu quale, costruisci la distribuzione di frequenza, il grafico a barre corrispondente e infine calcola l'indice di Gini.
+
+Divido la variabile "sales" in 5 classi e ne costruisco la distribuzione di frequenza.
+
+```{r}
+sales_CL<-cut(sales,breaks = c(0,100,200,300,400,500))
+
+ni_sales<-table(sales_CL)
+fi_sales<-table(sales_CL)/N
+Ni_sales<-cumsum(ni_sales)
+Fi_sales<-Ni_sales/N
+
+sales_CL_table<-cbind(ni_sales,fi_sales,Ni_sales,Fi_sales)
+knitr::kable(sales_CL_table,"pipe",col.name=c("freq ass","freq ass relativa","freq cumulata","freq cumulata relativa"),caption = "**sales**",align = "c")
+
+```
+
+Rappresento la distribuzione in classi della variabile "sales" tramite un barplot.
+
+```{r}
+ggplot(realestate_texas)+
+  geom_bar(aes(x=sales_CL),col="black",linewidth=0.8,fill="seagreen2",alpha=0.4)+
+  labs(title = "Numero di vendite per classe di valore",
+       y="N di vendite")+
+  theme_classic()
+```
+
+Calcolo ora l'indice di Gini per la variabile "sales".
+
+```{r}
+
+gini.index<-function(x){
+  fi2<-fi_sales^2
+  j=length(table(x))
+  
+  gini=1-sum(fi2)
+  gini.normalizzato=gini/((j-1)/j)
+  
+  return(gini.normalizzato)
+}
+
+
+gini_index_sales<-gini.index(sales_CL)  
+knitr::kable(gini_index_sales,col.names = "Gini Index Value","pipe",align = "c")
+```
+
+Il valore dell'indice di Gini ottenuto ci dice che la distribuzione all'interno delle classi della variabile "sales" è piuttosto eterogenea. Dal barplot si vede come la classe più rappresentativa sia quella che contiene valori della variabile "sales" contenuti tra 100 e 200 vendite.
+
+### TASK 6: indovina l'indice di Gini per la variabile "city".
+
+```{r}
+ni_city<-table(city)
+fi_city<-table(city)/N
+Ni_city<-cumsum(ni_city)
+Fi_city<-Ni_city/N
+
+gini.index<-function(x){
+  fi2_city<-fi_city^2
+  j_city=length(table(x))
+  
+  gini=1-sum(fi2_city)
+  gini.normalizzato=gini/((j_city-1)/j_city)
+  
+  return(gini.normalizzato)
+}
+
+gini_index_city<-gini.index(city)  
+knitr::kable(gini_index_city,col.names = "Gini Index Value","pipe",align = "c")
+
+```
+
+Il valore dell'indice di Gini per la variabile "city" è 1. Lo si sarebbe potuto "indovinare" anche dalla distribuzione calcolata in precedenza per questa variabile.
+
+### TASK 7: qual'è la probabilità che presa una riga a caso di questo dataset essa riporti la città Beumont? e la probabilità che riporti il mese di Luglio? e la probabilità che riporti il mese di Dicembre 2012?
+
+La probabilità che presa una riga a caso questa riporti la città Beumont è del 25%, come si vede in tabella.
+
+```{r}
+p_city<-table(city)/N
+knitr::kable(p_city,"pipe",align = "l")
+```
+
+La probabilità che presa una riga a caso questa riporti il mese di Luglio è di circa l'8%.
+
+```{r}
+p_month<-table(month)/N 
+knitr::kable(p_month,"pipe",align = "l")
+```
+
+La probabilità che presa una riga a caso questa riporti il mese di Dicembre del 2012 è dello 1,6%.
+
+```{r}
+
+p_year<-table(year)/N
+
+p_my<-0.2*0.083
+knitr::kable(p_my,"pipe",col.names="probabilità",align = "c")
+```
+
+### TASK 8: esiste una colonna con il prezzo mediano. Prova a crearne una che indichi il prezzo medio utilizzando le altre variabili che hai a disposizione.
+
+Creo una nuova colonna con il prezzo medio.
+
+```{r}
+average_price<-volume/sales
+realestate_texas_2<-(cbind(realestate_texas,average_price))
+realestate_texas_3<-(realestate_texas_2[,c(1,2,3,4,5,9,6,7,8)])
+new_db<-head(realestate_texas_3)
+knitr::kable(new_db,"pipe",align = "c")
+```
+
+### TASK 9: prova a creare un'altra colonna che dia un'idea dell'efficacia degli annunci di vendita. Riesci a fare qualche considerazione?
+
+Creo una nuova colonna nel dataset che indichi l'efficacia degli annunci di vendita. Valuto poi l'andamento di questa nuova variabile per ogni città.
+
+```{r}
+listing_effectiveness<-sales/listings
+realestate_texas_4<-cbind(realestate_texas_3,listing_effectiveness)
+
+ggplot(realestate_texas_4,aes(x=listing_effectiveness,fill=city))+
+  geom_density(alpha=0.4)
+```
+
+Il nuovo indice "listing_effectiveness" considera il rapporto tra le vendite (sales) e il numero totale di annunci attivi (listings). Questo rapporto può dare un'idea di quanti annunci hanno portato effettivamente a una vendita.
+
+### TASK 10: prova a creare dei summary() o semplicemente media e deviazione standard di alcune variabili a tua scelta condizionatamente alla città, agli anni, ai mesi.
+
+Come prima cosa creo un nuovo dataset con media e deviazione standard della variabile "sales" condizionatamente alle variabili "city" e "year".
+
+```{r}
+library(dplyr)
+
+realestate_texas_gby1<-realestate_texas_4 %>%
+  group_by(city,year)%>%
+  summarise(media=mean(sales),
+            dev.sd=sd(sales))
+realestate_texas_gby1_head<-head(realestate_texas_gby1,5)
+knitr::kable(realestate_texas_gby1_head,"pipe",align = "c")
+
+
+```
+
+Faccio poi la stessa cosa condizionatamente al mese di Gennaio e ne do una rappresentazione grafica.
+
+```{r}
+realestate_texas_gby2<-realestate_texas_4 %>%
+  group_by(city,month=1)%>%
+  summarise(media=mean(sales),
+            dev.sd=sd(sales))
+realestate_texas_gby2_head<-head(realestate_texas_gby2,5)
+knitr::kable(realestate_texas_gby2_head,"pipe",align = "c")
+```
+
+```{r}
+ggplot(realestate_texas_gby2)+
+  geom_line(aes(x=city,y=media,
+                group=1))+
+  geom_point(aes(x=city,y=media,
+             group=1), col="red", size=3)+
+  theme_linedraw()
+```
+
+Il prossimo grafico invece rappresenta l'andamento della variabile "listing effectiveness" per i mesi dell'anno 2010.
+
+```{r}
+Beaumont_DB<-realestate_texas_4%>%filter(city=="Beaumont",year==2010)
+
+
+ggplot(Beaumont_DB)+
+  geom_line(aes(x=as.factor(month),
+               y=listing_effectiveness,
+               group=1),
+            col="red",
+            lwd=0.9)+
+  labs(x="Months",
+       y="Listing Effectiveness")+
+  theme_linedraw()
+```
+
+### TASK 11: utilizza i boxplot per confrontare la distribuzione del prezzo mediano delle case tra le varie città. Commenta.
+
+Come si può vedere dal grafico la città BC station è quella con il prezzo mediano più alto. Wichita Falls invece, quella con il prezzo mediano più basso.
+
+```{r}
+ggplot(realestate_texas_4,aes(x=city,y=median_price))+
+  geom_boxplot(col="red", fill="orange",alpha=0.6)+
+  geom_point(col="tomato2",size=1.8,alpha=0.4)+
+  theme_linedraw()
+```
+
+### TASK 12: utilizza i boxplot per confrontare la distribuzione del valore totale delle vendite tra le varie città ma anche tra i vari anni. Qualche considerazione da fare?
+
+```{r,fig.width=10}
+ggplot(realestate_texas_4)+
+  geom_boxplot(aes(x=city,
+                   y=volume,
+                   fill=as.factor(year)))+
+     scale_fill_discrete(name = "YEAR")
+```
+
+Dai boxplot si evince che il 2014 è stato l'anno in cui il volume totale di vendite è stato maggiore. Si nota comunque un trend crescente dal 2010 al 2014 (con qualche eccezzione data dalle vendite del 2011). A livello mediano la città di Tyler è quella che ogni anno ha registrato il volume totale di vendite maggiore e la città Wichita Falls quello minore.
+
+### TASK 13: usa un grafico a barre sovrapposte per ogni anno per confrontare il totale delle vendite nei vari mesi, sempre considerando le città. Prova a commentare. Crea anche il grafico normalizzato.
+
+```{r,fig.width=10}
+
+ggplot(realestate_texas_4)+
+  geom_col(aes(x=as.factor(year),
+               y=volume,
+               fill=city,
+           position = "stack",
+           stat="identity"))
+```
+
+```{r}
+ggplot(realestate_texas_4)+
+  geom_col(aes(x=as.factor(year),
+               y=volume,
+               fill=city),
+           position="fill",
+               stat="identity")
+           
+               
+           
+```
+
+I due grafici rappresentano le vendite delle città per anno.
+Il secondo grafico inoltre è normalizzato.
+
+
+### TASK 14: crea una line chart di una variabile a tua scelta per fare confronti commentati tra città e periodi storici.
+
+```{r,fig.width=10}
+realestate_texas_4$Date<-as.Date(with(realestate_texas_4,paste(year,month,01,sep="-")),"%Y-%m-%d")
+
+db_f<- realestate_texas_4 %>%
+  group_by(city,year)%>%
+  summarise(year_median=mean(median_price))
+
+db_f%>%
+  ggplot(aes(year,year_median,colour=city))+
+  geom_line(size=2)+
+  labs(title = "Confronto andamento del prezzo mediano per le 4 città",
+       y="Prezzo mediano ($)")
+  
+
+```
+La tendenza dei prezzi è quella di aumentare con l'andare degli anni. Per tutte le città infatti i prezzi più alti si sono registrati nel 2014 (con l'ecezzione della città di Beaumont). Il valore degli immobili tra le città si mantiene quasi costante: non vi sono momenti di questa serie in cui il valore degli immobili di una città superi quello di un'altra città.
